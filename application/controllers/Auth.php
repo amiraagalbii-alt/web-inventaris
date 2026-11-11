@@ -3,33 +3,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Auth extends CI_Controller
 {
-  
     public function login()
     {
-        $this->load->model('auth_model');
-        $this->load->library('form_validation');
+        if ($this->input->post()) {
+            $user = $this->db->get_where('user', [
+                'username' => $this->input->post('username'),
+                'password' => md5($this->input->post('password'))
+            ])->row();
 
-        $rules = $this->auth_model->rules();
-        $this->form_validation->set_rules($rules);
-
-        if($this->form_validation->run() == FALSE){
-            return $this->load->view('login_form');
+            if ($user) {
+                $this->session->set_userdata('login', TRUE);
+                redirect('barang');
+            }
         }
-
-        $username = $this->input->post('username');
-        $password = $this->input->post('password');
-
-        if($this->auth_model->login($username, $password)){
-            redirect('admin');
-        } else {
-            $this->session->set_flashdata('message_login_error', 'Login Gagal, pastikan username dan password benar!');
-        }
-
-        $this->load->view('login_form');
+        $this->load->view('login');
     }
 
     public function logout()
     {
         $this->session->sess_destroy();
         redirect('auth/login');
+    }
 }
